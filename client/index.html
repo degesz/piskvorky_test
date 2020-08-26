@@ -31,6 +31,7 @@
 	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 	<script>
 
+ 		var areaSize = 20;
 		var joinedGameId;
 		var myTurn;
 		var mySign = "";
@@ -62,21 +63,21 @@
 		ctx.font = '30px Arial';
 	 
 		var socket = io();
-	 /*
-		socket.on('newPositions',function(data){
-			ctx.clearRect(0,0,500,500);
-			for(var i = 0 ; i < data.length; i++)
-				ctx.fillText(data[i].number,data[i].x,data[i].y);		
-		});		*/
-
 
 		socket.on('gameList',function(data){
+
+
 			//	console.log(data)	;
 			var GAMES_LIST = data;
 			var gamesStr = "";
 
 			var i;
 			for(i = 0; i< GAMES_LIST.length; i++){
+				if(GAMES_LIST[i] == undefined){
+					continue;
+				}
+
+
 				gamesStr +='<div id=game';
 				gamesStr += GAMES_LIST[i].id; 
 				gamesStr += ' style="border:2px solid orange; width: 75%; height: 20px;">Založil: ';
@@ -110,6 +111,10 @@
 			setSquares[data.x][data.y] = true
 				document.getElementById("gridItem" + data.x + "x" + data.y).style.background = "#cccccc";
 				document.getElementById("gridItem" + data.x + "x" + data.y).src=("client/img/" + data.mySign + ".gif");
+				if(checkWin(data.x, data.y, data.mySign)){
+					win();
+					alert("Protihráč vyhrál")
+				}
 
 				myTurn = true;
 			
@@ -131,11 +136,12 @@
 			socket.emit('join', id);
 			joinedGameId = id;
 		}
+		
 
 
 		//game
 		function generateGameArea(){
-			var areaSize = 20;
+			
 			document.getElementById("gameDiv").style = "position:relative"	; //make gameDiv visible
 
 			var gameAreaHTMLStr = "";
@@ -164,6 +170,176 @@
 			//console.log(gameAreaHTMLStr);
 
 		}
+		
+
+
+		function checkWin(x, y, sign){
+			var streak = 0;
+			var i;
+			var j;
+
+			for(i = x; i < (x+5); i++){		//doprava
+				if(document.getElementById("gridItem" + i + "x" + y) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + i + "x" + y).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+				}
+				else{
+					break;
+				}
+
+			}
+			console.log("streak doprava je " + streak);
+			streak--;
+
+			for(i = x; i > (x-5); i--){	//doleva
+				if(document.getElementById("gridItem" + i + "x" + y) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + i + "x" + y).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+				}
+				else{
+					break;
+				}
+			}
+
+			console.log("streak doprava i doleva je " + streak);
+			if( streak >= 5){
+				console.log("win")
+				return true;
+			}
+			streak = 0;
+
+			for(i = y; i < (y+5); i++){		//dolu
+				if(document.getElementById("gridItem" + x + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + x + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+				}
+				else{
+					break;
+				}
+
+			}
+			console.log("streak dolu je " + streak);
+			streak--;
+
+			for(i = y; i > (y-5); i--){	//nahoru
+				if(document.getElementById("gridItem" + x + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + x + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+				}
+				else{
+					break;
+				}
+			}
+
+			console.log("streak dolu i nahoru je " + streak);
+			if( streak >= 5){
+				console.log("win")
+				return true;
+			}
+
+			streak = 0;
+
+			j = x;
+			for(i = y; i < (y+5); i++){		//dolu doprava
+				if(document.getElementById("gridItem" + j + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + j + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+					j++
+				}
+				else{
+					break;
+				}
+
+			}
+			console.log("streak dolu doprava je " + streak);
+			streak--;
+
+			j = x;
+			for(i = y; i > (y-5); i--){	//nahoru doleva
+				if(document.getElementById("gridItem" + j + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + j + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+					j--
+				}
+				else{
+					break;
+				}
+			}
+
+			console.log("streak dolu doprava i nahoru doleva je " + streak);
+			if( streak >= 5){
+				console.log("win")
+				return true;
+			}
+
+			streak = 0;
+
+			j = x;
+			for(i = y; i < (y+5); i++){		//dolu doprava
+				if(document.getElementById("gridItem" + j + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + j + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+					j--
+				}
+				else{
+					break;
+				}
+
+			}
+			console.log("streak dolu doprava je " + streak);
+			streak--;
+
+			j = x;
+			for(i = y; i > (y-5); i--){	//nahoru doleva
+				if(document.getElementById("gridItem" + j + "x" + i) == null){
+					break;
+				}
+
+				if(document.getElementById("gridItem" + j + "x" + i).src.includes("client/img/" + sign + ".gif")){
+					streak++;
+					j++
+				}
+				else{
+					break;
+				}
+			}
+
+			console.log("streak dolu doprava i nahoru doleva je " + streak);
+			if( streak >= 5){
+				console.log("win")
+				return true;
+			}
+
+			streak = 0;
+
+			return false;
+
+
+			
+		}
+
+
 
 			function ActionOver(x,y){
 			//	alert("actionOver");
@@ -213,8 +389,48 @@
 					"y": y
 				});
 
+				if(checkWin(x, y, mySign)){
+					socket.emit('win', joinedGameId);
+					win();
+					alert("Vyhrál jsi");
+				}
+
 			}
 
+
+			function win(){
+
+			 joinedGameId = null;
+			 myTurn = null;
+			 mySign = "";
+			 setSquares = [	// array that stores if squares are already set
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+				[false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, ],
+
+			];
+
+			document.getElementById("gameDiv").style = "display: none"	; //make gameDiv invisible
+
+
+			}
 
 
 	</script>

@@ -9,7 +9,7 @@ app.use('/client',express.static(__dirname + '/client'));
  
 const port = process.env.PORT || 3000;
 
-serv.listen(2000);
+serv.listen(port);
 console.log("Server started.");
  
 var SOCKET_LIST = {};
@@ -37,6 +37,7 @@ io.sockets.on('connection', function(socket){
 	//socket.x = 0;
 	//socket.y = 0;
 	//socket.number = "" + Math.floor(10 * Math.random());
+	sendGameList();
 	SOCKET_LIST[socket.id] = socket;
 
 	socket.on('setName', function(data){	//nastaveni jmena
@@ -48,6 +49,10 @@ io.sockets.on('connection', function(socket){
 	socket.on('newGame',function(){ 
 		var i;
 		for(i = 0; i < GAME_LIST.length; i++ ){
+			if(GAME_LIST[i] == undefined){
+				continue;
+			}
+
 			if (GAME_LIST[i].founder == socket.name) {
 				return;
 			}
@@ -95,7 +100,7 @@ io.sockets.on('connection', function(socket){
 
 	socket.on('myNewSquare',function(data){
 
-		console.log("new square from game id:" + data.id);
+		
 
 		if (data.mySign == "x") {
 			GAME_DATA[data.gameId].sockets[1].emit('newCompetitorSquare', data);
@@ -103,11 +108,31 @@ io.sockets.on('connection', function(socket){
 		if (data.mySign == "o") {
 			GAME_DATA[data.gameId].sockets[0].emit('newCompetitorSquare', data);
 		}
-		console.log("new square from game id:" + data.gameId);
+		
+
+	});
+
+	socket.on('win', function(data){
+		console.log("hra " + data + " je vyhraná")
+
+		socket.joined = false;
+		if(GAME_DATA[data].sockets[0] == socket){
+			GAME_DATA[data].sockets[1].joined = false;
+		}
+		else{
+			GAME_DATA[data].sockets[0].joined = false;
+		}
+
+		delete GAME_DATA[data];
+		delete GAME_LIST[data];
+
+		sendGameList();
+
+
 
 	});
 	
-
+	
 	socket.on('disconnect',function(){
 		delete SOCKET_LIST[socket.id];
 	});
@@ -123,7 +148,7 @@ function sendGameList(){
 
 function startGame(id){
 
-	console.log(GAME_DATA[id].sockets.length);
+	
 
 	GAME_DATA[id].sockets[0].emit('startGame', 'x');
 	GAME_DATA[id].sockets[1].emit('startGame', 'o');
